@@ -1,0 +1,12 @@
+language: java
+
+services:
+    - docker
+    
+script:
+    - make
+    - make docker-login
+    - make TAG=${TRAVIS_BUILD_NUMBER} tag
+    - make TAG=${TRAVIS_BUILD_NUMBER} push-tag
+    - make push-latest
+
