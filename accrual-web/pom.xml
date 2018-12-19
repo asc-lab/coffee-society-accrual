@@ -18,13 +18,13 @@
 
     <dependencies>
         <dependency>
-            <groupId>pl.altkom.coffee.product</groupId>
-            <artifactId>product-domain</artifactId>
+            <groupId>pl.altkom.coffee.accrual</groupId>
+            <artifactId>accrual-domain</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
         <dependency>
-            <groupId>pl.altkom.coffee.product</groupId>
-            <artifactId>product-query</artifactId>
+            <groupId>pl.altkom.coffee.accrual</groupId>
+            <artifactId>accrual-query</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
         <dependency>

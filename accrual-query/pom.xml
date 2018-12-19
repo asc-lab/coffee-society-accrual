@@ -19,7 +19,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>pl.altkom.coffee.product</groupId>
+            <groupId>pl.altkom.coffee.accrual</groupId>
             <artifactId>accrual-api</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
