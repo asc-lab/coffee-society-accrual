@@ -4,10 +4,12 @@ import org.axonframework.commandhandling.CommandHandler
 import org.axonframework.eventsourcing.EventSourcingHandler
 import org.axonframework.modelling.command.AggregateIdentifier
 import org.axonframework.modelling.command.AggregateLifecycle
+import org.axonframework.spring.stereotype.Aggregate
 import pl.altkom.coffee.accrual.api.*
 import pl.altkom.coffee.accrual.api.enums.ProductResourceType
 import java.math.BigDecimal
 
+@Aggregate
 class Batch {
 
     @AggregateIdentifier
@@ -67,7 +69,7 @@ class Batch {
 
     @CommandHandler
     fun on(command: SaveStocktakingCommand) {
-        if (this.isFinalized())
+        if (isFinalized())
             throw BatchAlreadyFinalizedException()
 
         with(command) {
@@ -82,7 +84,7 @@ class Batch {
 
     @CommandHandler
     fun on(command: FinalizeBatchCommand) {
-        if (this.isFinalized())
+        if (isFinalized())
             throw BatchAlreadyFinalizedException()
 
         AggregateLifecycle.apply(BatchFinalizedEvent())
