@@ -6,6 +6,7 @@ import org.axonframework.modelling.command.AggregateIdentifier
 import org.axonframework.modelling.command.AggregateLifecycle
 import org.axonframework.spring.stereotype.Aggregate
 import pl.altkom.coffee.accrual.api.*
+import pl.altkom.coffee.accrual.api.enums.BatchStatus
 import pl.altkom.coffee.accrual.api.enums.ProductResourceType
 import java.math.BigDecimal
 
@@ -17,7 +18,7 @@ class Batch {
     lateinit var resourceType: ProductResourceType
     val shares: MutableList<Share> = mutableListOf()
     val resources: MutableList<Resource> = mutableListOf()
-    private lateinit var status: BatchStatus
+    lateinit var status: BatchStatus
 
     constructor()
 
@@ -103,7 +104,3 @@ class Batch {
 data class Share internal constructor(val customerId: String, val quantity: BigDecimal, val productId: String)
 
 data class Resource internal constructor(var amount: BigDecimal, val unitPrice: BigDecimal)
-
-private enum class BatchStatus {
-    RUNNING, FINALIZED
-}

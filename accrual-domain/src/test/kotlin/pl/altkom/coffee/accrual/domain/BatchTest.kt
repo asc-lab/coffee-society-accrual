@@ -10,10 +10,12 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.context.SecurityContextImpl
 import org.springframework.security.core.userdetails.User
 import pl.altkom.coffee.accrual.api.*
+import pl.altkom.coffee.accrual.api.enums.BatchStatus
 import pl.altkom.coffee.accrual.api.enums.ProductResourceType
 import java.math.BigDecimal
 import java.util.*
 import kotlin.test.assertEquals
+import kotlin.test.assertNotSame
 import kotlin.test.assertSame
 
 class BatchTest : Spek({
@@ -35,6 +37,7 @@ class BatchTest : Spek({
                         assertSame(1, it.resources.size)
                         assertEquals(BigDecimal("1.00"), it.resources[0].amount)
                         assertEquals(BigDecimal("100.00"), it.resources[0].unitPrice)
+                        assertSame(BatchStatus.RUNNING, it.status)
                     }
         }
     }
@@ -115,6 +118,7 @@ class BatchTest : Spek({
                         assertEquals(BigDecimal("0.50"), it.resources[1].amount)
                         assertEquals(BigDecimal("100.00"), it.resources[0].unitPrice)
                         assertEquals(BigDecimal("150.00"), it.resources[1].unitPrice)
+                        assertNotSame(BatchStatus.FINALIZED, it.status)
                     }
         }
 
