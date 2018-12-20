@@ -1,65 +1,58 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	<parent>
-		<groupId>org.springframework.boot</groupId>
-		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.1.1.RELEASE</version>
-		<relativePath/> <!-- lookup parent from pl.altkom.coffee.members.domain.repository -->
-	</parent>
-	<groupId>pl.altkom.coffee.accrual</groupId>
-	<artifactId>accrual-parent</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
-	<packaging>pom</packaging>
-	<name>Coffee Society Accrual module</name>
-	<description>Coffee Society Accrual module</description>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.springframework.cloud</groupId>
+        <artifactId>spring-cloud-starter-parent</artifactId>
+        <version>Greenwich.RC1</version>
+        <relativePath/> <!-- lookup parent from pl.altkom.coffee.members.domain.repository -->
+    </parent>
+    <groupId>pl.altkom.coffee.accrual</groupId>
+    <artifactId>accrual-parent</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <name>Coffee Society Accrual module</name>
+    <description>Coffee Society Accrual module</description>
 
-	<properties>
-		<java.version>1.8</java.version>
-		<spring-cloud.version>Greenwich.M3</spring-cloud.version>
-		<axon.version>4.0</axon.version>
-	</properties>
+    <properties>
+        <java.version>1.8</java.version>
+        <axon.version>4.0.3</axon.version>
+        <kotlin.version>1.3.10</kotlin.version>
+    </properties>
 
-	<modules>
-		<module>accrual-api</module>
-		<module>accrual-domain</module>
-		<module>accrual-query</module>
-		<module>accrual-web</module>
-	</modules>
+    <modules>
+        <module>accrual-api</module>
+        <module>accrual-domain</module>
+        <module>accrual-query</module>
+        <module>accrual-web</module>
+    </modules>
 
-	<dependencyManagement>
-		<dependencies>
-			<dependency>
-				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-dependencies</artifactId>
-				<version>${spring-cloud.version}</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
-			<dependency>
-				<groupId>org.axonframework</groupId>
-				<artifactId>axon-spring-boot-starter</artifactId>
-				<version>${axon.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.axonframework</groupId>
-				<artifactId>axon-mongo</artifactId>
-				<version>${axon.version}</version>
-			</dependency>
-		</dependencies>
-	</dependencyManagement>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.axonframework</groupId>
+                <artifactId>axon-spring-boot-starter</artifactId>
+                <version>${axon.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.axonframework</groupId>
+                <artifactId>axon-mongo</artifactId>
+                <version>${axon.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
-	<repositories>
-		<repository>
-			<id>spring-milestones</id>
-			<name>Spring Milestones</name>
-			<url>https://repo.spring.io/milestone</url>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-		</repository>
-	</repositories>
+    <repositories>
+        <repository>
+            <id>spring-milestones</id>
+            <name>Spring Milestones</name>
+            <url>https://repo.spring.io/milestone</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
 
 
 </project>
