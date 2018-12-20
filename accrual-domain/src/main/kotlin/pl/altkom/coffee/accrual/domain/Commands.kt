@@ -5,14 +5,15 @@ import pl.altkom.coffee.accrual.api.enums.ProductResourceType
 import java.math.BigDecimal
 
 data class CreateNewBatchCommand(
-        val id: String,
+        val batchId: String,
         val resourceType: ProductResourceType,
         val amount: BigDecimal,
         val unitPrice: BigDecimal
 )
 
 data class AddPackageToBatchCommand(
-        @TargetAggregateIdentifier val batchId: String,
+        @TargetAggregateIdentifier
+        val batchId: String,
         val resourceType: ProductResourceType,
         val amount: BigDecimal,
         val unitPrice: BigDecimal
@@ -23,4 +24,15 @@ data class UpdateAmountInPackageCommand(
         val batchId: String,
         val resourceType: ProductResourceType,
         val amount: BigDecimal
+)
+
+data class SaveStocktakingCommand(
+        @TargetAggregateIdentifier
+        val batchId: String,
+        val amount: BigDecimal
+)
+
+data class FinalizeBatchCommand(
+        @TargetAggregateIdentifier
+        val batchId: String
 )

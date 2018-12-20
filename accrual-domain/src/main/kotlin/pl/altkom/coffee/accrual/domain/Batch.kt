@@ -4,9 +4,7 @@ import org.axonframework.commandhandling.CommandHandler
 import org.axonframework.eventsourcing.EventSourcingHandler
 import org.axonframework.modelling.command.AggregateIdentifier
 import org.axonframework.modelling.command.AggregateLifecycle
-import pl.altkom.coffee.accrual.api.AmountInPackageUpdatedEvent
-import pl.altkom.coffee.accrual.api.NewBachCreatedEvent
-import pl.altkom.coffee.accrual.api.ResourceAddedToBatchEvent
+import pl.altkom.coffee.accrual.api.*
 import pl.altkom.coffee.accrual.api.enums.ProductResourceType
 import java.math.BigDecimal
 
@@ -17,19 +15,21 @@ class Batch {
     lateinit var resourceType: ProductResourceType
     val shares: MutableList<Share> = mutableListOf()
     val resources: MutableList<Resource> = mutableListOf()
+    private lateinit var status: BatchStatus
 
     constructor()
 
     @CommandHandler
     constructor(command: CreateNewBatchCommand) {
         with(command) {
-            AggregateLifecycle.apply(NewBachCreatedEvent(id, resourceType, amount, unitPrice))
+            AggregateLifecycle.apply(NewBatchCreatedEvent(batchId, resourceType, amount, unitPrice))
         }
     }
 
     @EventSourcingHandler
-    fun handle(event: NewBachCreatedEvent) {
+    fun handle(event: NewBatchCreatedEvent) {
         this.id = event.id
+        this.status = BatchStatus.RUNNING
         this.resourceType = event.resourceType
 
         this.resources.add(Resource(event.amount, event.unitPrice))
@@ -65,9 +65,43 @@ class Batch {
         this.resources.last().amount = event.amount
     }
 
+    @CommandHandler
+    fun on(command: SaveStocktakingCommand) {
+        if (this.isFinalized())
+            throw BatchAlreadyFinalizedException()
 
+        with(command) {
+            AggregateLifecycle.apply(StocktakingSavedEvent(amount))
+        }
+    }
+
+    @EventSourcingHandler
+    fun handle(event: StocktakingSavedEvent) {
+        this.resources.last().amount = this.resources.last().amount.minus(event.amount)
+    }
+
+    @CommandHandler
+    fun on(command: FinalizeBatchCommand) {
+        if (this.isFinalized())
+            throw BatchAlreadyFinalizedException()
+
+        AggregateLifecycle.apply(BatchFinalizedEvent())
+    }
+
+    @EventSourcingHandler
+    fun handle(event: BatchFinalizedEvent) {
+        this.status = BatchStatus.FINALIZED
+    }
+
+    private fun isFinalized(): Boolean {
+        return BatchStatus.FINALIZED == this.status
+    }
 }
 
 data class Share internal constructor(val customerId: String, val quantity: BigDecimal, val productId: String)
 
 data class Resource internal constructor(var amount: BigDecimal, val unitPrice: BigDecimal)
+
+private enum class BatchStatus {
+    RUNNING, FINALIZED
+}
