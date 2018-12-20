@@ -3,7 +3,7 @@ package pl.altkom.coffee.accrual.domain
 import org.axonframework.commandhandling.CommandHandler
 import org.axonframework.eventsourcing.EventSourcingHandler
 import org.axonframework.modelling.command.AggregateIdentifier
-import org.axonframework.modelling.command.AggregateLifecycle
+import org.axonframework.modelling.command.AggregateLifecycle.apply
 import org.axonframework.spring.stereotype.Aggregate
 import pl.altkom.coffee.accrual.api.*
 import pl.altkom.coffee.accrual.api.enums.BatchStatus
@@ -14,28 +14,32 @@ import java.math.BigDecimal
 class Batch {
 
     @AggregateIdentifier
-    lateinit var id: String
+    lateinit var batchId: BatchId
     lateinit var resourceType: ProductResourceType
     val shares: MutableList<Share> = mutableListOf()
     val resources: MutableList<Resource> = mutableListOf()
     lateinit var status: BatchStatus
 
-    constructor()
+
+    @Suppress("unused")
+    constructor() {
+        // Required by Axon Framework
+    }
 
     @CommandHandler
     constructor(command: CreateNewBatchCommand) {
         with(command) {
-            AggregateLifecycle.apply(NewBatchCreatedEvent(batchId, resourceType, amount, unitPrice))
+            apply(NewBatchCreatedEvent(batchId, resourceType, amount, unitPrice))
         }
     }
 
     @EventSourcingHandler
     fun handle(event: NewBatchCreatedEvent) {
-        this.id = event.id
-        this.status = BatchStatus.RUNNING
-        this.resourceType = event.resourceType
+        batchId = event.batchId
+        status = BatchStatus.RUNNING
+        resourceType = event.resourceType
 
-        this.resources.add(Resource(event.amount, event.unitPrice))
+        resources.add(Resource(event.amount, event.unitPrice))
     }
 
     @CommandHandler
@@ -44,7 +48,7 @@ class Batch {
             throw IllegalResourceTypeException()
 
         with(command) {
-            AggregateLifecycle.apply(ResourceAddedToBatchEvent(amount, unitPrice))
+            apply(ResourceAddedToBatchEvent(batchId, amount, unitPrice))
         }
     }
 
@@ -59,7 +63,7 @@ class Batch {
             throw IllegalResourceTypeException()
 
         with(command) {
-            AggregateLifecycle.apply(AmountInPackageUpdatedEvent(amount))
+            apply(AmountInPackageUpdatedEvent(batchId, amount))
         }
     }
 
@@ -69,18 +73,36 @@ class Batch {
     }
 
     @CommandHandler
+    fun on(command: StartStocktakingCommand) {
+        if (isFinalized())
+            throw BatchAlreadyFinalizedException()
+
+        with(command) {
+            apply(StocktakingStartedEvent(batchId, amount, resourceType, unitPrice))
+        }
+    }
+
+    @CommandHandler
     fun on(command: SaveStocktakingCommand) {
         if (isFinalized())
             throw BatchAlreadyFinalizedException()
 
         with(command) {
-            AggregateLifecycle.apply(StocktakingSavedEvent(amount))
+            subtractAmountFromLastPackage(amount)
+
+            apply(StocktakingSavedEvent(batchId))
         }
     }
 
-    @EventSourcingHandler
-    fun handle(event: StocktakingSavedEvent) {
-        this.resources.last().amount = this.resources.last().amount.minus(event.amount)
+
+    @CommandHandler
+    fun on(command: FinishStocktakingCommand) {
+        if (isFinalized())
+            throw BatchAlreadyFinalizedException()
+
+        with(command) {
+            apply(StocktakingFinishedEvent(batchId))
+        }
     }
 
     @CommandHandler
@@ -88,16 +110,26 @@ class Batch {
         if (isFinalized())
             throw BatchAlreadyFinalizedException()
 
-        AggregateLifecycle.apply(BatchFinalizedEvent())
+        with(command) {
+            apply(BatchFinalizedEvent(batchId))
+        }
     }
 
     @EventSourcingHandler
     fun handle(event: BatchFinalizedEvent) {
-        this.status = BatchStatus.FINALIZED
+        finalize()
     }
 
     private fun isFinalized(): Boolean {
         return BatchStatus.FINALIZED == this.status
+    }
+
+    private fun finalize() {
+        status = BatchStatus.FINALIZED
+    }
+
+    private fun subtractAmountFromLastPackage(amount: BigDecimal) {
+        resources.last().amount = resources.last().amount.minus(amount)
     }
 }
 

@@ -12,11 +12,6 @@
     <artifactId>accrual-query</artifactId>
     <packaging>jar</packaging>
 
-    <properties>
-        <kotlin.version>1.3.11</kotlin.version>
-    </properties>
-
-
     <dependencies>
         <dependency>
             <groupId>pl.altkom.coffee.accrual</groupId>
