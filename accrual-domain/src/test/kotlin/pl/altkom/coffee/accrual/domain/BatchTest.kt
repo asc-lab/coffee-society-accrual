@@ -28,9 +28,9 @@ class BatchTest : Spek({
             withUser("executor")
 
             fixture
-                    .`when`(CreateNewBatchCommand("123", ProductResourceType.COFFEE, BigDecimal("1.00"), BigDecimal("100.00")))
+                    .`when`(CreateNewBatchCommand("123", ProductResourceType.COFFEE, BigDecimal("1.00"), BigDecimal("100.00"), "122"))
                     .expectSuccessfulHandlerExecution()
-                    .expectEvents(NewBatchCreatedEvent("123", ProductResourceType.COFFEE, BigDecimal("1.00"), BigDecimal("100.00")))
+                    .expectEvents(NewBatchCreatedEvent("123", ProductResourceType.COFFEE, BigDecimal("1.00"), BigDecimal("100.00"), "122"))
                     .expectState {
                         assertSame(ProductResourceType.COFFEE, it.resourceType)
                         assertSame(0, it.shares.size)
@@ -51,7 +51,7 @@ class BatchTest : Spek({
             withUser("executor")
 
             fixture
-                    .andGiven(NewBatchCreatedEvent("123", ProductResourceType.COFFEE, BigDecimal("1.00"), BigDecimal("100.00")))
+                    .andGiven(NewBatchCreatedEvent("123", ProductResourceType.COFFEE, BigDecimal("1.00"), BigDecimal("100.00"),"122"))
                     .`when`(AddPackageToBatchCommand("123", ProductResourceType.COFFEE, BigDecimal("1.50"), BigDecimal("150.00")))
                     .expectSuccessfulHandlerExecution()
                     .expectEvents(ResourceAddedToBatchEvent(BigDecimal("1.50"), BigDecimal("150.00")))
@@ -66,7 +66,7 @@ class BatchTest : Spek({
             withUser("executor")
 
             fixture
-                    .andGiven(NewBatchCreatedEvent("123", ProductResourceType.COFFEE, BigDecimal("1.00"), BigDecimal("100.00")))
+                    .andGiven(NewBatchCreatedEvent("123", ProductResourceType.COFFEE, BigDecimal("1.00"), BigDecimal("100.00"), "122"))
                     .`when`(AddPackageToBatchCommand("123", ProductResourceType.MILK, BigDecimal("1.50"), BigDecimal("150.00")))
                     .expectException(IllegalResourceTypeException::class.java)
         }
@@ -82,7 +82,7 @@ class BatchTest : Spek({
 
             fixture
                     .andGiven(
-                            NewBatchCreatedEvent("123", ProductResourceType.COFFEE, BigDecimal("1.00"), BigDecimal("100.00")),
+                            NewBatchCreatedEvent("123", ProductResourceType.COFFEE, BigDecimal("1.00"), BigDecimal("100.00"), "122"),
                             ResourceAddedToBatchEvent(BigDecimal("1.50"), BigDecimal("150.00"))
                     )
                     .`when`(UpdateAmountInPackageCommand("123", ProductResourceType.COFFEE, BigDecimal("0.90")))
@@ -106,7 +106,7 @@ class BatchTest : Spek({
 
             fixture
                     .andGiven(
-                            NewBatchCreatedEvent("123", ProductResourceType.COFFEE, BigDecimal("1.00"), BigDecimal("100.00")),
+                            NewBatchCreatedEvent("123", ProductResourceType.COFFEE, BigDecimal("1.00"), BigDecimal("100.00"), "122"),
                             ResourceAddedToBatchEvent(BigDecimal("1.50"), BigDecimal("150.00"))
                     )
                     .`when`(SaveStocktakingCommand("123", BigDecimal("1.00")))
@@ -127,9 +127,9 @@ class BatchTest : Spek({
 
             fixture
                     .andGiven(
-                            NewBatchCreatedEvent("123", ProductResourceType.COFFEE, BigDecimal("1.00"), BigDecimal("100.00")),
+                            NewBatchCreatedEvent("123", ProductResourceType.COFFEE, BigDecimal("1.00"), BigDecimal("100.00"), "122"),
                             ResourceAddedToBatchEvent(BigDecimal("1.50"), BigDecimal("150.00")),
-                            BatchFinalizedEvent()
+                            BatchFinalizedEvent("123")
                     )
                     .`when`(SaveStocktakingCommand("123", BigDecimal("1.00")))
                     .expectException(BatchAlreadyFinalizedException::class.java)

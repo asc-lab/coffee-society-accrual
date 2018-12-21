@@ -8,7 +8,8 @@ data class CreateNewBatchCommand(
         val batchId: String,
         val resourceType: ProductResourceType,
         val amount: BigDecimal,
-        val unitPrice: BigDecimal
+        val unitPrice: BigDecimal,
+        val previousBatchId: String
 )
 
 data class AddPackageToBatchCommand(
@@ -34,5 +35,6 @@ data class SaveStocktakingCommand(
 
 data class FinalizeBatchCommand(
         @TargetAggregateIdentifier
-        val batchId: String
+        val batchId: String,
+        val nextBatchId : String
 )

@@ -7,7 +7,8 @@ data class NewBatchCreatedEvent(
         val id: String,
         val resourceType: ProductResourceType,
         val amount: BigDecimal,
-        val unitPrice: BigDecimal
+        val unitPrice: BigDecimal,
+        val previousBatchId: String?
 )
 
 data class ResourceAddedToBatchEvent(val amount: BigDecimal, val unitPrice: BigDecimal)
@@ -16,4 +17,4 @@ class AmountInPackageUpdatedEvent(val amount: BigDecimal)
 
 data class StocktakingSavedEvent(val amount: BigDecimal)
 
-class BatchFinalizedEvent
+data class BatchFinalizedEvent(val nextBatchId: String)

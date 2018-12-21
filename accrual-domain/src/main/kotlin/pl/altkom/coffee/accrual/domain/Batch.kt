@@ -25,7 +25,7 @@ class Batch {
     @CommandHandler
     constructor(command: CreateNewBatchCommand) {
         with(command) {
-            AggregateLifecycle.apply(NewBatchCreatedEvent(batchId, resourceType, amount, unitPrice))
+            AggregateLifecycle.apply(NewBatchCreatedEvent(batchId, resourceType, amount, unitPrice, previousBatchId))
         }
     }
 
@@ -88,7 +88,7 @@ class Batch {
         if (isFinalized())
             throw BatchAlreadyFinalizedException()
 
-        AggregateLifecycle.apply(BatchFinalizedEvent())
+        AggregateLifecycle.apply(BatchFinalizedEvent(command.nextBatchId))
     }
 
     @EventSourcingHandler
