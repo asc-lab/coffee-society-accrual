@@ -129,7 +129,7 @@ class BatchTest : Spek({
                     .andGiven(
                             NewBatchCreatedEvent("123", ProductResourceType.COFFEE, BigDecimal("1.00"), BigDecimal("100.00"), "122"),
                             ResourceAddedToBatchEvent(BigDecimal("1.50"), BigDecimal("150.00")),
-                            BatchFinalizedEvent("123")
+                            BatchFinalizedEvent("123","123")
                     )
                     .`when`(SaveStocktakingCommand("123", BigDecimal("1.00")))
                     .expectException(BatchAlreadyFinalizedException::class.java)

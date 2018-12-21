@@ -17,4 +17,4 @@ class AmountInPackageUpdatedEvent(val amount: BigDecimal)
 
 data class StocktakingSavedEvent(val amount: BigDecimal)
 
-data class BatchFinalizedEvent(val nextBatchId: String)
+data class BatchFinalizedEvent(val batchId: String, val nextBatchId: String)

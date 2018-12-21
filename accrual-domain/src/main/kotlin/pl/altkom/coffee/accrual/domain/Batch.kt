@@ -88,7 +88,7 @@ class Batch {
         if (isFinalized())
             throw BatchAlreadyFinalizedException()
 
-        AggregateLifecycle.apply(BatchFinalizedEvent(command.nextBatchId))
+        AggregateLifecycle.apply(BatchFinalizedEvent(this.id, command.nextBatchId))
     }
 
     @EventSourcingHandler

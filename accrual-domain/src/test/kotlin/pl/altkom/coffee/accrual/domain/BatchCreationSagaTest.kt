@@ -13,6 +13,7 @@ import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.context.SecurityContextImpl
 import org.springframework.security.core.userdetails.User
+import pl.altkom.coffee.accrual.api.BatchFinalizedEvent
 import pl.altkom.coffee.accrual.api.NewBatchCreatedEvent
 import pl.altkom.coffee.accrual.api.enums.ProductResourceType
 import java.math.BigDecimal
@@ -24,14 +25,26 @@ class BatchCreationSagaTest : Spek({
         val fixture = SagaTestFixture(BatchCreationSaga::class.java)
 
 
-        it("Should finalize old batch") {
+        it("Should send finalization command") {
             withUser("executor")
 
             fixture
                     .givenAggregate("batch1").published()
                     .whenAggregate("batch1").publishes(NewBatchCreatedEvent("batch2", ProductResourceType.COFFEE, BigDecimal("1.00"), BigDecimal("80.00"), "batch1"))
                     .expectActiveSagas(1)
-                    .expectDispatchedCommandsMatching(Matchers.listWithAllOf(FinalizeBatchCommandMatcher("batch1","batch2")))
+                    .expectDispatchedCommandsMatching(Matchers.listWithAllOf(FinalizeBatchCommandMatcher("batch1", "batch2")))
+
+        }
+
+        it("Should finish saga after finalization") {
+            withUser("executor")
+
+            fixture
+                    .givenAggregate("batch1").published()
+                    .andThenAPublished(NewBatchCreatedEvent("batch2", ProductResourceType.COFFEE, BigDecimal("1.00"), BigDecimal("80.00"), "batch1"))
+                    .whenAggregate("batch1").publishes(BatchFinalizedEvent("batch1","batch2"))
+                    .expectActiveSagas(0)
+                    .expectDispatchedCommandsMatching(Matchers.noCommands())
 
         }
 

@@ -14,8 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired
 @Saga
 class BatchCreationSaga {
 
-    lateinit var nextBatchId: String
-
     @Autowired
     @Transient
     val commandGateway: CommandGateway? = null
@@ -23,12 +21,13 @@ class BatchCreationSaga {
     @StartSaga
     @SagaEventHandler(associationProperty = "id")
     fun handle(event: NewBatchCreatedEvent) {
-        this.nextBatchId = event.id
+
 
         logger.info("Got Batch Creation (${event.id})")
 
         if (event.previousBatchId != null) {
             logger.info("Requesting for old batch finalization (${event.previousBatchId})")
+            SagaLifecycle.associateWith("prevId", event.previousBatchId)
             commandGateway?.send<Void>(FinalizeBatchCommand(event.previousBatchId!!, event.id))
         } else {
             SagaLifecycle.end()
@@ -36,8 +35,9 @@ class BatchCreationSaga {
     }
 
     @EndSaga
-    @SagaEventHandler(associationProperty = "nextBatchId")
+    @SagaEventHandler(associationProperty = "batchId", keyName = "prevId")
     fun handle(event: BatchFinalizedEvent) {
+        logger.info("Batch creation Saga finished")
         //just finish saga
     }
 
