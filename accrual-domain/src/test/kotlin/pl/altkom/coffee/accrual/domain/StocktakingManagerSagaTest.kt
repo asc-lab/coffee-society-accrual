@@ -18,13 +18,13 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotSame
 import kotlin.test.assertSame
 
-class BatchTest : Spek({
+class StocktakingManagerSagaTest : Spek({
     describe("batch creation") {
 
         val fixture = AggregateTestFixture(Batch::class.java)
         val batchId = BatchId("123")
 
-        it("should create new Batch") {
+        it("Should create new Batch") {
             withUser("executor")
 
             fixture
@@ -47,7 +47,7 @@ class BatchTest : Spek({
         val fixture = AggregateTestFixture(Batch::class.java)
         val batchId = BatchId("123")
 
-        it("should add new package") {
+        it("Should add new package") {
             withUser("executor")
 
             fixture
@@ -62,7 +62,7 @@ class BatchTest : Spek({
                     }
         }
 
-        it("should reject new package based on different resource type") {
+        it("Should reject new package based on different resource type") {
             withUser("executor")
 
             fixture
@@ -77,7 +77,7 @@ class BatchTest : Spek({
         val fixture = AggregateTestFixture(Batch::class.java)
         val batchId = BatchId("123")
 
-        it("should change amount in package") {
+        it("Should change amount in package") {
             withUser("executor")
 
             fixture
@@ -101,7 +101,7 @@ class BatchTest : Spek({
         val fixture = AggregateTestFixture(Batch::class.java)
         val batchId = BatchId("123")
 
-        it("should save stocktaking") {
+        it("Should save stocktaking") {
             withUser("executor")
 
             fixture
@@ -123,7 +123,7 @@ class BatchTest : Spek({
                     }
         }
 
-        it("should reject stocktaking saving when batch already finalized") {
+        it("Should reject stocktaking saving when batch already finalized") {
             withUser("executor")
 
             fixture

@@ -7,7 +7,7 @@ import pl.altkom.coffee.accrual.api.BatchId
 import java.io.Serializable
 
 
-abstract class ManagerSaga : Serializable {
+abstract class AbstractManagerSaga : Serializable {
 
     @Transient
     lateinit var commandGateway: CommandGateway

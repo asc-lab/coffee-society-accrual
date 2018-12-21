@@ -7,6 +7,7 @@ import java.math.BigDecimal
 
 data class CreateNewBatchCommand(
         val batchId: BatchId,
+        val previousBatchId: BatchId?,
         val resourceType: ProductResourceType,
         val amount: BigDecimal,
         val unitPrice: BigDecimal
@@ -34,19 +35,6 @@ data class SaveStocktakingCommand(
 )
 
 data class FinalizeBatchCommand(
-        @TargetAggregateIdentifier
-        val batchId: BatchId
-)
-
-data class StartStocktakingCommand(
-        @TargetAggregateIdentifier
-        val batchId: BatchId,
-        val resourceType: ProductResourceType,
-        val amount: BigDecimal,
-        val unitPrice: BigDecimal
-)
-
-data class FinishStocktakingCommand(
         @TargetAggregateIdentifier
         val batchId: BatchId
 )

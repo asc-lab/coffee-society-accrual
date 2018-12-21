@@ -15,36 +15,25 @@ class Batch {
 
     @AggregateIdentifier
     lateinit var batchId: BatchId
+    var previousBatchId: BatchId? = null
     lateinit var resourceType: ProductResourceType
     val shares: MutableList<Share> = mutableListOf()
     val resources: MutableList<Resource> = mutableListOf()
     lateinit var status: BatchStatus
 
 
-    @Suppress("unused")
-    constructor() {
-        // Required by Axon Framework
-    }
+    constructor()
 
     @CommandHandler
     constructor(command: CreateNewBatchCommand) {
         with(command) {
-            apply(NewBatchCreatedEvent(batchId, resourceType, amount, unitPrice))
+            apply(NewBatchCreatedEvent(batchId, previousBatchId, resourceType, amount, unitPrice))
         }
-    }
-
-    @EventSourcingHandler
-    fun handle(event: NewBatchCreatedEvent) {
-        batchId = event.batchId
-        status = BatchStatus.RUNNING
-        resourceType = event.resourceType
-
-        resources.add(Resource(event.amount, event.unitPrice))
     }
 
     @CommandHandler
     fun on(command: AddPackageToBatchCommand) {
-        if (command.resourceType != this.resourceType)
+        if (command.resourceType != resourceType)
             throw IllegalResourceTypeException()
 
         with(command) {
@@ -52,33 +41,13 @@ class Batch {
         }
     }
 
-    @EventSourcingHandler
-    fun handle(event: ResourceAddedToBatchEvent) {
-        this.resources.add(Resource(event.amount, event.unitPrice))
-    }
-
     @CommandHandler
     fun on(command: UpdateAmountInPackageCommand) {
-        if (command.resourceType != this.resourceType)
+        if (command.resourceType != resourceType)
             throw IllegalResourceTypeException()
 
         with(command) {
             apply(AmountInPackageUpdatedEvent(batchId, amount))
-        }
-    }
-
-    @EventSourcingHandler
-    fun handle(event: AmountInPackageUpdatedEvent) {
-        this.resources.last().amount = event.amount
-    }
-
-    @CommandHandler
-    fun on(command: StartStocktakingCommand) {
-        if (isFinalized())
-            throw BatchAlreadyFinalizedException()
-
-        with(command) {
-            apply(StocktakingStartedEvent(batchId, amount, resourceType, unitPrice))
         }
     }
 
@@ -88,20 +57,7 @@ class Batch {
             throw BatchAlreadyFinalizedException()
 
         with(command) {
-            subtractAmountFromLastPackage(amount)
-
-            apply(StocktakingSavedEvent(batchId))
-        }
-    }
-
-
-    @CommandHandler
-    fun on(command: FinishStocktakingCommand) {
-        if (isFinalized())
-            throw BatchAlreadyFinalizedException()
-
-        with(command) {
-            apply(StocktakingFinishedEvent(batchId))
+            apply(StocktakingSavedEvent(batchId, resourceType, amount, resources.last().unitPrice))
         }
     }
 
@@ -113,6 +69,31 @@ class Batch {
         with(command) {
             apply(BatchFinalizedEvent(batchId))
         }
+    }
+
+    @EventSourcingHandler
+    fun handle(event: NewBatchCreatedEvent) {
+        batchId = event.batchId
+        previousBatchId = event.previousBatchId
+        status = BatchStatus.RUNNING
+        resourceType = event.resourceType
+
+        resources.add(Resource(event.amount, event.unitPrice))
+    }
+
+    @EventSourcingHandler
+    fun handle(event: ResourceAddedToBatchEvent) {
+        this.resources.add(Resource(event.amount, event.unitPrice))
+    }
+
+    @EventSourcingHandler
+    fun handle(event: AmountInPackageUpdatedEvent) {
+        this.resources.last().amount = event.amount
+    }
+
+    @EventSourcingHandler
+    fun handle(event: StocktakingSavedEvent) {
+        subtractAmountFromLastPackage(event.amount)
     }
 
     @EventSourcingHandler
