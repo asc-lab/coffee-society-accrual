@@ -1,5 +1,6 @@
 package pl.altkom.coffee.accrual.domain
 
+import mu.KLogging
 import org.axonframework.modelling.saga.EndSaga
 import org.axonframework.modelling.saga.SagaEventHandler
 import org.axonframework.modelling.saga.StartSaga
@@ -24,7 +25,10 @@ class BatchCreationSaga {
     fun handle(event: NewBatchCreatedEvent) {
         this.nextBatchId = event.id
 
+        logger.info("Got Batch Creation (${event.id})")
+
         if (event.previousBatchId != null) {
+            logger.info("Requesting for old batch finalization (${event.previousBatchId})")
             commandGateway?.send<Void>(FinalizeBatchCommand(event.previousBatchId!!, event.id))
         } else {
             SagaLifecycle.end()
@@ -36,5 +40,7 @@ class BatchCreationSaga {
     fun handle(event: BatchFinalizedEvent) {
         //just finish saga
     }
+
+    companion object : KLogging()
 
 }
