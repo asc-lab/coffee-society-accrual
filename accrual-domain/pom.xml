@@ -70,7 +70,7 @@
     </dependencies>
 
     <build>
-        <!--<sourceDirectory>src/main/kotlin</sourceDirectory>-->
+        <sourceDirectory>src/main/kotlin</sourceDirectory>
         <plugins>
             <plugin>
                 <artifactId>kotlin-maven-plugin</artifactId>
