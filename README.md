@@ -1,6 +1,6 @@
 # CoffeeSociety Accrual Service
 [![Build Status](https://travis-ci.org/asc-lab/coffee-society-accrual.svg?branch=master)](https://travis-ci.org/asc-lab/coffee-society-accrual)
-[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=pl.altkom.coffee.accrual%3Aaccrual-parent&metric=alert_status)](https://sonarcloud.io/dashboard?id=pl.altkom.coffee.accrual%3Aaccrual-parent)
+[![Code Quality](https://sonarcloud.io/api/project_badges/measure?project=pl.altkom.coffee.accrual%3Aaccrual-parent&metric=alert_status)](https://sonarcloud.io/dashboard?id=pl.altkom.coffee.accrual%3Aaccrual-parent)
 
 ## Building
 
