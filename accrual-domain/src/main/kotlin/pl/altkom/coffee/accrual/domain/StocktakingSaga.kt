@@ -10,20 +10,28 @@ import pl.altkom.coffee.accrual.api.StocktakingSavedEvent
 
 
 @Saga
-class StocktakingAbstractManagerSaga : AbstractManagerSaga() {
+class StocktakingSaga : AbstractManagerSaga() {
 
     @StartSaga
     @SagaEventHandler(associationProperty = "batchId")
     fun handle(event: StocktakingSavedEvent) {
-        batchId = event.batchId
 
         val nextBatchId = BatchId()
-        commandGateway.send<Void>(CreateNewBatchCommand(nextBatchId, batchId, event.resourceType, event.amount, event.unitPrice))
+        commandGateway.send<Void>(CreateNewBatchCommand(
+                nextBatchId,
+                event.batchId,
+                event.resourceType,
+                event.amount,
+                event.unitPrice
+        ))
     }
 
     @EndSaga
     @SagaEventHandler(associationProperty = "previousBatchId")
     fun handle(event: NewBatchCreatedEvent) {
-        commandGateway.send<Void>(FinalizeBatchCommand(event.previousBatchId!!, event.batchId))
+        commandGateway.send<Void>(FinalizeBatchCommand(
+                event.previousBatchId!!,
+                event.batchId
+        ))
     }
 }
