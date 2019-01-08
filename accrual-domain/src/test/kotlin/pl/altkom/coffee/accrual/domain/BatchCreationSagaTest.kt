@@ -8,7 +8,6 @@ import org.hamcrest.Description
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
-import org.jetbrains.spek.api.dsl.xit
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
@@ -41,7 +40,7 @@ class BatchCreationSagaTest : Spek({
 
         }
 
-        xit("Should finish saga after finalization") {
+        it("Should finish saga after finalization") {
             withUser("executor")
 
             fixture

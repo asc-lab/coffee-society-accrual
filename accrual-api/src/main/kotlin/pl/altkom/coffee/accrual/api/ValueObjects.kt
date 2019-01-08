@@ -9,4 +9,7 @@ data class BatchId(val identifier: String = IdentifierFactory.getInstance().gene
         private const val serialVersionUID = -5267104328616955617L
     }
 
+    override fun toString(): String {
+        return identifier
+    }
 }
