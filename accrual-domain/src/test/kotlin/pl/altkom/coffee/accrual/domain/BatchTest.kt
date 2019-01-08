@@ -4,29 +4,24 @@ import org.axonframework.test.aggregate.AggregateTestFixture
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
-import org.springframework.security.core.GrantedAuthority
-import org.springframework.security.core.context.SecurityContextHolder
-import org.springframework.security.core.context.SecurityContextImpl
-import org.springframework.security.core.userdetails.User
 import pl.altkom.coffee.accrual.api.*
 import pl.altkom.coffee.accrual.api.enums.BatchStatus
 import pl.altkom.coffee.accrual.api.enums.ProductResourceType
 import java.math.BigDecimal
-import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertNotSame
 import kotlin.test.assertSame
 
 class BatchTest : Spek({
-    describe("batch creation") {
 
-        val fixture = AggregateTestFixture(Batch::class.java)
+    var fixture = AggregateTestFixture(Batch::class.java)
+
+    afterEachTest { fixture = AggregateTestFixture(Batch::class.java) }
+
+    describe("batch creation") {
         val batchId = BatchId("123")
 
         it("should create new Batch") {
-            withUser("executor")
-
             fixture
                     .`when`(CreateNewBatchCommand(batchId, batchId, ProductResourceType.COFFEE, BigDecimal("1.00"), BigDecimal("100.00")))
                     .expectSuccessfulHandlerExecution()
@@ -43,15 +38,11 @@ class BatchTest : Spek({
     }
 
     describe("package adding") {
-
-        val fixture = AggregateTestFixture(Batch::class.java)
         val batchId = BatchId("123")
 
         it("should add new package") {
-            withUser("executor")
-
             fixture
-                    .andGiven(NewBatchCreatedEvent(batchId, batchId, ProductResourceType.COFFEE, BigDecimal("1.00"), BigDecimal("100.00")))
+                    .given(NewBatchCreatedEvent(batchId, batchId, ProductResourceType.COFFEE, BigDecimal("1.00"), BigDecimal("100.00")))
                     .`when`(AddPackageToBatchCommand(batchId, ProductResourceType.COFFEE, BigDecimal("1.50"), BigDecimal("150.00")))
                     .expectSuccessfulHandlerExecution()
                     .expectEvents(ResourceAddedToBatchEvent(batchId, BigDecimal("1.50"), BigDecimal("150.00")))
@@ -63,25 +54,19 @@ class BatchTest : Spek({
         }
 
         it("should reject new package based on different resource type") {
-            withUser("executor")
-
             fixture
-                    .andGiven(NewBatchCreatedEvent(batchId, batchId, ProductResourceType.COFFEE, BigDecimal("1.00"), BigDecimal("100.00")))
+                    .given(NewBatchCreatedEvent(batchId, batchId, ProductResourceType.COFFEE, BigDecimal("1.00"), BigDecimal("100.00")))
                     .`when`(AddPackageToBatchCommand(batchId, ProductResourceType.MILK, BigDecimal("1.50"), BigDecimal("150.00")))
                     .expectException(IllegalResourceTypeException::class.java)
         }
     }
 
     describe("resource amount change") {
-
-        val fixture = AggregateTestFixture(Batch::class.java)
         val batchId = BatchId("123")
 
         it("should change amount in package") {
-            withUser("executor")
-
             fixture
-                    .andGiven(
+                    .given(
                             NewBatchCreatedEvent(batchId, batchId, ProductResourceType.COFFEE, BigDecimal("1.00"), BigDecimal("100.00")),
                             ResourceAddedToBatchEvent(batchId, BigDecimal("1.50"), BigDecimal("150.00"))
                     )
@@ -97,15 +82,11 @@ class BatchTest : Spek({
     }
 
     describe("stocktaking saving") {
-
-        val fixture = AggregateTestFixture(Batch::class.java)
         val batchId = BatchId("123")
 
         it("should save stocktaking") {
-            withUser("executor")
-
             fixture
-                    .andGiven(
+                    .given(
                             NewBatchCreatedEvent(batchId, batchId, ProductResourceType.COFFEE, BigDecimal("1.00"), BigDecimal("100.00")),
                             ResourceAddedToBatchEvent(batchId, BigDecimal("1.50"), BigDecimal("150.00"))
                     )
@@ -124,10 +105,8 @@ class BatchTest : Spek({
         }
 
         it("should reject stocktaking saving when batch already finalized") {
-            withUser("executor")
-
             fixture
-                    .andGiven(
+                    .given(
                             NewBatchCreatedEvent(batchId, batchId, ProductResourceType.COFFEE, BigDecimal("1.00"), BigDecimal("100.00")),
                             ResourceAddedToBatchEvent(batchId, BigDecimal("1.50"), BigDecimal("150.00")),
                             BatchFinalizedEvent(batchId, batchId)
@@ -137,10 +116,3 @@ class BatchTest : Spek({
         }
     }
 })
-
-private fun withUser(userName: String) {
-    val authenticatedUser = UsernamePasswordAuthenticationToken(
-            User(userName, "", ArrayList<GrantedAuthority>()), null)
-    SecurityContextHolder.setContext(
-            SecurityContextImpl(authenticatedUser))
-}
