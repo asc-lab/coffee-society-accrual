@@ -11,31 +11,31 @@ import org.axonframework.spring.stereotype.Saga
 import org.springframework.beans.factory.annotation.Autowired
 import pl.altkom.coffee.accounting.api.Money
 import pl.altkom.coffee.accounting.api.OperationId
-import pl.altkom.coffee.accounting.domain.SaveLiabilityCommand
-import pl.altkom.coffee.accrual.api.TaxAddedEvent
-import pl.altkom.coffee.product.api.ProductPreparationRegisteredEvent
+import pl.altkom.coffee.accounting.domain.SaveAssetCommand
+import pl.altkom.coffee.accrual.api.TaxCanceledEvent
+import pl.altkom.coffee.product.api.ProductPreparationCancelledEvent
 import pl.altkom.coffee.productcatalog.api.dto.ProductDefinitionDto
 import pl.altkom.coffee.productcatalog.api.query.ProductDetailsQuery
 import java.math.BigDecimal
 
 @Saga
-class AddShareSaga : AbstractManagerSaga() {
+class CancelShareSaga : AbstractManagerSaga() {
 
     @Transient
+    @Autowired
     lateinit var queryGateway: QueryGateway
-        @Autowired set
 
     @StartSaga
     @SagaEventHandler(associationProperty = "id")
-    fun handle(event: ProductPreparationRegisteredEvent) {
-        logger.info("Adding share saga started")
+    fun handle(event: ProductPreparationCancelledEvent) {
+        logger.info("Cancel share saga started.")
         val productDefinitionDto = queryGateway.query(
                 ProductDetailsQuery(event.productDefId), InstanceResponseType(ProductDefinitionDto::class.java)).get()
 
-        if (BigDecimal.ZERO.compareTo(productDefinitionDto.tax) != 0) {
+        if (productDefinitionDto.tax != BigDecimal.ZERO) {
             val taxId = IdentifierFactory.getInstance().generateIdentifier()
             SagaLifecycle.associateWith("taxId", taxId)
-            commandGateway.send<Void>(AddTaxCommand(
+            commandGateway.send<Void>(CancelTaxCommand(
                     taxId,
                     event.productReceiverId,
                     productDefinitionDto.id,
@@ -46,9 +46,9 @@ class AddShareSaga : AbstractManagerSaga() {
 
     @EndSaga
     @SagaEventHandler(associationProperty = "taxId", keyName = "taxId")
-    fun handle(event: TaxAddedEvent) {
-        logger.info("AddShareSaga: Handle TaxAddedEvent")
-        commandGateway.send<Void>(SaveLiabilityCommand(
+    fun handle(event: TaxCanceledEvent) {
+        logger.info("Cancel share saga: Handle TaxCanceledEvent")
+        commandGateway.send<Void>(SaveAssetCommand(
                 event.memberId,
                 OperationId(event.taxId, "TAX"),
                 Money(event.taxAmount)

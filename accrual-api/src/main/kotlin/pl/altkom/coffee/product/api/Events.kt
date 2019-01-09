@@ -6,3 +6,10 @@ data class ProductPreparationRegisteredEvent(
         val productReceiverId: String,
         val productExecutorId: String
 )
+
+data class ProductPreparationCancelledEvent(
+        val id: String,
+        val productDefId: String,
+        val productReceiverId: String,
+        val productExecutorId: String
+)

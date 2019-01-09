@@ -48,3 +48,11 @@ data class AddTaxCommand(
         val taxAmount: BigDecimal
 )
 
+data class CancelTaxCommand(
+        @TargetAggregateIdentifier
+        val taxId: String,
+        val memberId: String,
+        val productDefId: String,
+        val taxAmount: BigDecimal
+)
+

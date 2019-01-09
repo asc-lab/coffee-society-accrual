@@ -11,3 +11,10 @@ data class SaveLiabilityCommand(
         val operationId: OperationId,
         val amount: Money
 )
+
+data class SaveAssetCommand(
+        @TargetAggregateIdentifier
+        val memberId: String,
+        val operationId: OperationId,
+        val amount: Money
+)
