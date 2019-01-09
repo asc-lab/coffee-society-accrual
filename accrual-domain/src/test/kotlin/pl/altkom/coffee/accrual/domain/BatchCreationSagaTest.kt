@@ -16,7 +16,7 @@ import org.springframework.security.core.userdetails.User
 import pl.altkom.coffee.accrual.api.BatchFinalizedEvent
 import pl.altkom.coffee.accrual.api.BatchId
 import pl.altkom.coffee.accrual.api.NewBatchCreatedEvent
-import pl.altkom.coffee.accrual.api.enums.ProductResourceType
+import pl.altkom.coffee.productcatalog.api.enums.ProductResourceType
 import java.math.BigDecimal
 import java.util.*
 

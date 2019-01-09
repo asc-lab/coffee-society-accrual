@@ -7,7 +7,7 @@ import org.axonframework.modelling.command.AggregateLifecycle.apply
 import org.axonframework.spring.stereotype.Aggregate
 import pl.altkom.coffee.accrual.api.*
 import pl.altkom.coffee.accrual.api.enums.BatchStatus
-import pl.altkom.coffee.accrual.api.enums.ProductResourceType
+import pl.altkom.coffee.productcatalog.api.enums.ProductResourceType
 import java.math.BigDecimal
 
 @Aggregate

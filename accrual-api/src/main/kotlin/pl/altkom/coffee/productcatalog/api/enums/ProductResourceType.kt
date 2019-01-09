@@ -1,4 +1,4 @@
-package pl.altkom.coffee.accrual.api.enums
+package pl.altkom.coffee.productcatalog.api.enums
 
 enum class ProductResourceType {
     COFFEE, MILK

@@ -1,6 +1,6 @@
 package pl.altkom.coffee.accrual.api
 
-import pl.altkom.coffee.accrual.api.enums.ProductResourceType
+import pl.altkom.coffee.productcatalog.api.enums.ProductResourceType
 import java.math.BigDecimal
 
 data class NewBatchCreatedEvent(
@@ -33,3 +33,11 @@ data class BatchFinalizedEvent(
         val batchId: BatchId,
         val nextBatchId: BatchId
 )
+
+data class TaxAddedEvent(
+        val taxId: String,
+        val memberId: String,
+        val productDefId: String,
+        val taxAmount: BigDecimal
+)
+

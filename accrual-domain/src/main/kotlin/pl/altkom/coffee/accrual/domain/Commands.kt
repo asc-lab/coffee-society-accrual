@@ -2,7 +2,7 @@ package pl.altkom.coffee.accrual.domain
 
 import org.axonframework.modelling.command.TargetAggregateIdentifier
 import pl.altkom.coffee.accrual.api.BatchId
-import pl.altkom.coffee.accrual.api.enums.ProductResourceType
+import pl.altkom.coffee.productcatalog.api.enums.ProductResourceType
 import java.math.BigDecimal
 
 data class CreateNewBatchCommand(
@@ -39,3 +39,12 @@ data class FinalizeBatchCommand(
         val batchId: BatchId,
         val nextBatchId: BatchId
 )
+
+data class AddTaxCommand(
+        @TargetAggregateIdentifier
+        val taxId: String,
+        val memberId: String,
+        val productDefId: String,
+        val taxAmount: BigDecimal
+)
+

@@ -6,7 +6,7 @@ import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
 import pl.altkom.coffee.accrual.api.*
 import pl.altkom.coffee.accrual.api.enums.BatchStatus
-import pl.altkom.coffee.accrual.api.enums.ProductResourceType
+import pl.altkom.coffee.productcatalog.api.enums.ProductResourceType
 import java.math.BigDecimal
 import kotlin.test.assertEquals
 import kotlin.test.assertNotSame
