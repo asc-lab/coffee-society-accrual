@@ -41,3 +41,10 @@ data class TaxAddedEvent(
         val taxAmount: BigDecimal
 )
 
+data class ShareAddedEvent(
+        val batchId: BatchId,
+        val memberId: String,
+        val productId: String,
+        val quantity: Int
+)
+

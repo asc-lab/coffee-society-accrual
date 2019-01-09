@@ -61,6 +61,16 @@ class Batch {
     }
 
     @CommandHandler
+    fun on(command: AddShareCommand) {
+        if (command.quantity <= 0)
+            throw IllegalShareException()
+
+        with(command) {
+            apply(ShareAddedEvent(batchId, command.memberId, command.productId, command.quantity))
+        }
+    }
+
+    @CommandHandler
     fun on(command: FinalizeBatchCommand) {
         if (isFinalized())
             throw BatchAlreadyFinalizedException()
@@ -96,6 +106,11 @@ class Batch {
     }
 
     @EventSourcingHandler
+    fun handle(event: ShareAddedEvent) {
+        shares.add(Share(event.memberId, event.quantity, event.productId))
+    }
+
+    @EventSourcingHandler
     fun handle(event: BatchFinalizedEvent) {
         finalize()
     }
@@ -113,6 +128,6 @@ class Batch {
     }
 }
 
-data class Share internal constructor(val customerId: String, val quantity: BigDecimal, val productId: String)
+data class Share internal constructor(val customerId: String, val quantity: Int, val productId: String)
 
 data class Resource internal constructor(var amount: BigDecimal, val unitPrice: BigDecimal)

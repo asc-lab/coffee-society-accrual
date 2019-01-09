@@ -45,6 +45,13 @@ data class AddTaxCommand(
         val taxId: String,
         val memberId: String,
         val productDefId: String,
-        val taxAmount: BigDecimal
+        val taxAmount: BigDecimal)
+
+data class AddShareCommand(
+        @TargetAggregateIdentifier
+        val batchId: BatchId,
+        val memberId: String,
+        val productId: String,
+        val quantity: Int
 )
 
