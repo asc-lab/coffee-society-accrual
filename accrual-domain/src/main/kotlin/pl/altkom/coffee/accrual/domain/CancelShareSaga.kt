@@ -1,6 +1,5 @@
 package pl.altkom.coffee.accrual.domain
 
-import org.axonframework.common.IdentifierFactory
 import org.axonframework.messaging.responsetypes.InstanceResponseType
 import org.axonframework.modelling.saga.EndSaga
 import org.axonframework.modelling.saga.SagaEventHandler
@@ -33,21 +32,16 @@ class CancelShareSaga : AbstractManagerSaga() {
                 ProductDetailsQuery(event.productDefId), InstanceResponseType(ProductDefinitionDto::class.java)).get()
 
         if (productDefinitionDto.tax != BigDecimal.ZERO) {
-            val taxId = IdentifierFactory.getInstance().generateIdentifier()
+            var taxId = "tax_" + event.id
             SagaLifecycle.associateWith("taxId", taxId)
-            commandGateway.send<Void>(CancelTaxCommand(
-                    taxId,
-                    event.productReceiverId,
-                    productDefinitionDto.id,
-                    productDefinitionDto.tax
-            ))
+            commandGateway.send<Void>(CancelTaxCommand(taxId))
         }
     }
 
     @EndSaga
     @SagaEventHandler(associationProperty = "taxId", keyName = "taxId")
     fun handle(event: TaxCanceledEvent) {
-        logger.info("Cancel share saga: Handle TaxCanceledEvent")
+        logger.info("Cancel share saga ended: Handle TaxCanceledEvent")
         commandGateway.send<Void>(SaveAssetCommand(
                 event.memberId,
                 OperationId(event.taxId, "TAX"),

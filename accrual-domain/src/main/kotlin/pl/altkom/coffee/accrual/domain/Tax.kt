@@ -14,8 +14,8 @@ class Tax {
 
     @AggregateIdentifier
     lateinit var taxId: String
-
     lateinit var memberId: String
+    lateinit var productId: String
     lateinit var productDefId: String
     lateinit var taxAmount: BigDecimal
 
@@ -27,6 +27,7 @@ class Tax {
             AggregateLifecycle.apply(TaxAddedEvent(
                     taxId,
                     memberId,
+                    productId,
                     productDefId,
                     taxAmount
             ))
@@ -34,12 +35,11 @@ class Tax {
     }
 
     @CommandHandler
-    constructor(command: CancelTaxCommand) {
+    fun on(command: CancelTaxCommand) {
         with(command) {
             AggregateLifecycle.apply(TaxCanceledEvent(
                     taxId,
                     memberId,
-                    productDefId,
                     taxAmount
             ))
         }
@@ -49,14 +49,7 @@ class Tax {
     fun handle(event: TaxAddedEvent) {
         taxId = event.taxId
         memberId = event.memberId
-        productDefId = event.productDefId
-        taxAmount = event.taxAmount
-    }
-
-    @EventSourcingHandler
-    fun handle(event: TaxCanceledEvent) {
-        taxId = event.taxId
-        memberId = event.memberId
+        productId = event.productId
         productDefId = event.productDefId
         taxAmount = event.taxAmount
     }

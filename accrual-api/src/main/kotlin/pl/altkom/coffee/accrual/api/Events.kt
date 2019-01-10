@@ -37,6 +37,7 @@ data class BatchFinalizedEvent(
 data class TaxAddedEvent(
         val taxId: String,
         val memberId: String,
+        val productId: String,
         val productDefId: String,
         val taxAmount: BigDecimal
 )
@@ -44,7 +45,6 @@ data class TaxAddedEvent(
 data class TaxCanceledEvent(
         val taxId: String,
         val memberId: String,
-        val productDefId: String,
         val taxAmount: BigDecimal
 )
 

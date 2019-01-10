@@ -1,6 +1,5 @@
 package pl.altkom.coffee.accrual.domain
 
-import org.axonframework.common.IdentifierFactory
 import org.axonframework.messaging.responsetypes.InstanceResponseType
 import org.axonframework.modelling.saga.EndSaga
 import org.axonframework.modelling.saga.SagaEventHandler
@@ -21,23 +20,24 @@ import java.math.BigDecimal
 @Saga
 class AddShareSaga : AbstractManagerSaga() {
 
+    @Autowired
     @Transient
     lateinit var queryGateway: QueryGateway
-        @Autowired set
 
     @StartSaga
     @SagaEventHandler(associationProperty = "id")
     fun handle(event: ProductPreparationRegisteredEvent) {
-        logger.info("Adding share saga started")
+        logger.info("Add share saga started")
         val productDefinitionDto = queryGateway.query(
                 ProductDetailsQuery(event.productDefId), InstanceResponseType(ProductDefinitionDto::class.java)).get()
 
         if (BigDecimal.ZERO.compareTo(productDefinitionDto.tax) != 0) {
-            val taxId = IdentifierFactory.getInstance().generateIdentifier()
+            var taxId = "tax_" + event.id
             SagaLifecycle.associateWith("taxId", taxId)
             commandGateway.send<Void>(AddTaxCommand(
                     taxId,
                     event.productReceiverId,
+                    event.id,
                     productDefinitionDto.id,
                     productDefinitionDto.tax
             ))
@@ -47,7 +47,7 @@ class AddShareSaga : AbstractManagerSaga() {
     @EndSaga
     @SagaEventHandler(associationProperty = "taxId", keyName = "taxId")
     fun handle(event: TaxAddedEvent) {
-        logger.info("AddShareSaga: Handle TaxAddedEvent")
+        logger.info("Add share saga ended: Handle TaxAddedEvent")
         commandGateway.send<Void>(SaveLiabilityCommand(
                 event.memberId,
                 OperationId(event.taxId, "TAX"),
