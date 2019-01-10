@@ -54,3 +54,8 @@ data class CancelTaxCommand(
         val taxId: String
 )
 
+data class TransferTaxCommand(
+        @TargetAggregateIdentifier
+        val taxId: String,
+        val toMemberId: String
+)

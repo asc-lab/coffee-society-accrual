@@ -7,6 +7,7 @@ import org.axonframework.modelling.command.AggregateLifecycle
 import org.axonframework.spring.stereotype.Aggregate
 import pl.altkom.coffee.accrual.api.TaxAddedEvent
 import pl.altkom.coffee.accrual.api.TaxCanceledEvent
+import pl.altkom.coffee.accrual.api.TaxTransferedEvent
 import java.math.BigDecimal
 
 @Aggregate
@@ -45,6 +46,18 @@ class Tax {
         }
     }
 
+    @CommandHandler
+    fun on(command: TransferTaxCommand) {
+        with(command) {
+            AggregateLifecycle.apply(TaxTransferedEvent(
+                    taxId,
+                    memberId,
+                    toMemberId,
+                    taxAmount
+            ))
+        }
+    }
+
     @EventSourcingHandler
     fun handle(event: TaxAddedEvent) {
         taxId = event.taxId
@@ -54,4 +67,8 @@ class Tax {
         taxAmount = event.taxAmount
     }
 
+    @EventSourcingHandler
+    fun handle(event: TaxTransferedEvent) {
+        memberId = event.toMemberId
+    }
 }

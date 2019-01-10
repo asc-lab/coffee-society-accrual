@@ -48,3 +48,10 @@ data class TaxCanceledEvent(
         val taxAmount: BigDecimal
 )
 
+data class TaxTransferedEvent(
+        val taxId: String,
+        val fromMemberId: String,
+        val toMemberId: String,
+        val taxAmount: BigDecimal
+)
+
