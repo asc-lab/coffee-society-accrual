@@ -9,6 +9,7 @@ import org.jetbrains.spek.api.dsl.it
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
 import pl.altkom.coffee.accrual.api.TaxTransferedEvent
+import pl.altkom.coffee.product.api.ProductPreparationRegisteredEvent
 import pl.altkom.coffee.product.api.ProductReceiverChangedEvent
 import pl.altkom.coffee.productcatalog.api.dto.ProductDefinitionDto
 import pl.altkom.coffee.productcatalog.api.dto.ProductResourceDto
@@ -28,7 +29,7 @@ class TransferShareSagaTest : Spek({
 
         val productDefId = UUID.randomUUID().toString()
         val productId = UUID.randomUUID().toString()
-        val taxId = "tax_" + productId
+        val taxId = "tax_$productId"
         val memberId = UUID.randomUUID().toString()
         val toMemberId = UUID.randomUUID().toString()
 
@@ -49,9 +50,24 @@ class TransferShareSagaTest : Spek({
                     .whenAggregate(taxId).publishes(TaxTransferedEvent(taxId, memberId, toMemberId, BigDecimal("10.00")))
                     .expectActiveSagas(0)
         }
+
+        it("Should end transfer share saga when tax = 0") {
+            Mockito.`when`(queryGateway.query(ArgumentMatchers.any<ProductDetailsQuery>(), ArgumentMatchers.any<InstanceResponseType<ProductDefinitionDto>>()))
+                    .thenReturn(CompletableFuture.completedFuture(getProductDefWithoutTax(productDefId)))
+
+            fixture
+                    .givenAggregate(taxId).published()
+                    .whenAggregate(taxId).publishes(ProductReceiverChangedEvent(productId, productDefId, toMemberId))
+                    .expectNoAssociationWith("taxId", taxId)
+                    .expectActiveSagas(1)
+        }
     }
 })
 
 private fun getProductDef(productDefId : String) : ProductDefinitionDto {
     return ProductDefinitionDto(productDefId, "kafka", Arrays.asList(ProductResourceDto(ProductResourceType.COFFEE, 15)), BigDecimal("10.00"))
+}
+
+private fun getProductDefWithoutTax(productDefId : String) : ProductDefinitionDto {
+    return ProductDefinitionDto(productDefId, "kafka", Arrays.asList(ProductResourceDto(ProductResourceType.COFFEE, 15)), BigDecimal.ZERO)
 }

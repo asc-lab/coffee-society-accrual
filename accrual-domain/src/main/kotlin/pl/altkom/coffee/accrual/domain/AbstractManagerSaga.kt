@@ -13,4 +13,8 @@ abstract class AbstractManagerSaga : Serializable {
         @Autowired set
 
     companion object : KLogging()
+
+    protected fun getTaxId(productId : String) : String {
+        return "tax_$productId"
+    }
 }

@@ -28,7 +28,7 @@ class AddShareSagaTest : Spek({
 
         val productDefId = UUID.randomUUID().toString()
         val productId = UUID.randomUUID().toString()
-        val taxId = "tax_" + productId
+        val taxId = "tax_$productId"
         val memberId = UUID.randomUUID().toString()
 
         Mockito.`when`(queryGateway.query(ArgumentMatchers.any<ProductDetailsQuery>(), ArgumentMatchers.any<InstanceResponseType<ProductDefinitionDto>>()))
@@ -48,9 +48,24 @@ class AddShareSagaTest : Spek({
                     .whenAggregate(taxId).publishes(TaxAddedEvent(taxId, memberId, productId, productDefId, BigDecimal("10.00")))
                     .expectActiveSagas(0)
         }
+
+        it("Should end add share saga when tax = 0") {
+            Mockito.`when`(queryGateway.query(ArgumentMatchers.any<ProductDetailsQuery>(), ArgumentMatchers.any<InstanceResponseType<ProductDefinitionDto>>()))
+                    .thenReturn(CompletableFuture.completedFuture(getProductDefWithoutTax(productDefId)))
+
+            fixture
+                    .givenAggregate(taxId).published()
+                    .whenAggregate(taxId).publishes(ProductPreparationRegisteredEvent(productId, productDefId, memberId, memberId))
+                    .expectNoAssociationWith("taxId", taxId)
+                    .expectActiveSagas(1)
+        }
     }
 })
 
 private fun getProductDef(productDefId : String) : ProductDefinitionDto {
     return ProductDefinitionDto(productDefId, "kafka", Arrays.asList(ProductResourceDto(ProductResourceType.COFFEE, 15)), BigDecimal("10.00"))
+}
+
+private fun getProductDefWithoutTax(productDefId : String) : ProductDefinitionDto {
+    return ProductDefinitionDto(productDefId, "kafka", Arrays.asList(ProductResourceDto(ProductResourceType.COFFEE, 15)), BigDecimal.ZERO)
 }

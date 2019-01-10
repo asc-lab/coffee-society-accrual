@@ -33,7 +33,7 @@ class TransferShareSaga : AbstractManagerSaga() {
                 ProductDetailsQuery(event.productDefId), InstanceResponseType(ProductDefinitionDto::class.java)).get()
 
         if (productDefinitionDto.tax != BigDecimal.ZERO) {
-            val taxId = "tax_" + event.id
+            val taxId = getTaxId(event.id)
             SagaLifecycle.associateWith("taxId", taxId)
             commandGateway.send<Void>(TransferTaxCommand(taxId, event.productReceiverNewId))
         }
@@ -54,5 +54,4 @@ class TransferShareSaga : AbstractManagerSaga() {
                 Money(event.taxAmount)
         ))
     }
-
 }

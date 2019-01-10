@@ -32,7 +32,7 @@ class AddShareSaga : AbstractManagerSaga() {
                 ProductDetailsQuery(event.productDefId), InstanceResponseType(ProductDefinitionDto::class.java)).get()
 
         if (BigDecimal.ZERO.compareTo(productDefinitionDto.tax) != 0) {
-            var taxId = "tax_" + event.id
+            var taxId = getTaxId(event.id)
             SagaLifecycle.associateWith("taxId", taxId)
             commandGateway.send<Void>(AddTaxCommand(
                     taxId,

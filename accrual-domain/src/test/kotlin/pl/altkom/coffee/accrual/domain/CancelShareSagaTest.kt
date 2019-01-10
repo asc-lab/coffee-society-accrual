@@ -10,6 +10,7 @@ import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
 import pl.altkom.coffee.accrual.api.TaxCanceledEvent
 import pl.altkom.coffee.product.api.ProductPreparationCancelledEvent
+import pl.altkom.coffee.product.api.ProductPreparationRegisteredEvent
 import pl.altkom.coffee.productcatalog.api.dto.ProductDefinitionDto
 import pl.altkom.coffee.productcatalog.api.dto.ProductResourceDto
 import pl.altkom.coffee.productcatalog.api.enums.ProductResourceType
@@ -28,7 +29,7 @@ class CancelShareSagaTest : Spek({
 
         val productDefId = UUID.randomUUID().toString()
         val productId = UUID.randomUUID().toString()
-        val taxId = "tax_" + productId
+        val taxId = "tax_$productId"
         val memberId = UUID.randomUUID().toString()
 
         Mockito.`when`(queryGateway.query(ArgumentMatchers.any<ProductDetailsQuery>(), ArgumentMatchers.any<InstanceResponseType<ProductDefinitionDto>>()))
@@ -48,9 +49,24 @@ class CancelShareSagaTest : Spek({
                     .whenAggregate(taxId).publishes(TaxCanceledEvent(taxId, memberId, BigDecimal("10.00")))
                     .expectActiveSagas(0)
         }
+
+        it("Should end cancel share saga when tax = 0") {
+            Mockito.`when`(queryGateway.query(ArgumentMatchers.any<ProductDetailsQuery>(), ArgumentMatchers.any<InstanceResponseType<ProductDefinitionDto>>()))
+                    .thenReturn(CompletableFuture.completedFuture(getProductDefWithoutTax(productDefId)))
+
+            fixture
+                    .givenAggregate(taxId).published()
+                    .whenAggregate(taxId).publishes(ProductPreparationCancelledEvent(productId, productDefId))
+                    .expectNoAssociationWith("taxId", taxId)
+                    .expectActiveSagas(1)
+        }
     }
 })
 
 private fun getProductDef(productDefId : String) : ProductDefinitionDto {
     return ProductDefinitionDto(productDefId, "kafka", Arrays.asList(ProductResourceDto(ProductResourceType.COFFEE, 15)), BigDecimal("10.00"))
+}
+
+private fun getProductDefWithoutTax(productDefId : String) : ProductDefinitionDto {
+    return ProductDefinitionDto(productDefId, "kafka", Arrays.asList(ProductResourceDto(ProductResourceType.COFFEE, 15)), BigDecimal.ZERO)
 }

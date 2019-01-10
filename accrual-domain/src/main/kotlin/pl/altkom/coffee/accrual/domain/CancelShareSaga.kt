@@ -32,7 +32,7 @@ class CancelShareSaga : AbstractManagerSaga() {
                 ProductDetailsQuery(event.productDefId), InstanceResponseType(ProductDefinitionDto::class.java)).get()
 
         if (productDefinitionDto.tax != BigDecimal.ZERO) {
-            var taxId = "tax_" + event.id
+            var taxId = getTaxId(event.id)
             SagaLifecycle.associateWith("taxId", taxId)
             commandGateway.send<Void>(CancelTaxCommand(taxId))
         }
