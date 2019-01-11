@@ -59,6 +59,7 @@ data class ShareAddedEvent(
         val batchId: BatchId,
         val memberId: String,
         val productId: String,
-        val quantity: Int
+        val quantity: Int,
+        val batchFinalized: Boolean
 )
 

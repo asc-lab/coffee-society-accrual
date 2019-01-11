@@ -5,6 +5,7 @@ import org.axonframework.eventsourcing.EventSourcingHandler
 import org.axonframework.modelling.command.AggregateIdentifier
 import org.axonframework.modelling.command.AggregateLifecycle.apply
 import org.axonframework.spring.stereotype.Aggregate
+import pl.altkom.coffee.accounting.api.Money
 import pl.altkom.coffee.accrual.api.*
 import pl.altkom.coffee.accrual.api.enums.BatchStatus
 import pl.altkom.coffee.productcatalog.api.enums.ProductResourceType
@@ -65,9 +66,7 @@ class Batch {
         if (command.quantity <= 0)
             throw IllegalShareException()
 
-        with(command) {
-            apply(ShareAddedEvent(batchId, command.memberId, command.productId, command.quantity))
-        }
+        apply(ShareAddedEvent(batchId, command.memberId, command.productId, command.quantity, isFinalized()))
     }
 
     @CommandHandler
@@ -107,7 +106,13 @@ class Batch {
 
     @EventSourcingHandler
     fun handle(event: ShareAddedEvent) {
-        shares.add(Share(event.memberId, event.quantity, event.productId))
+        if (isFinalized()) {
+            //val chargesMapBeforeAddShare = getChargesMap()
+            shares.add(Share(event.memberId, event.quantity, event.productId))
+            //val chargesMapAfterAddShare = getChargesMap()
+        } else {
+            shares.add(Share(event.memberId, event.quantity, event.productId))
+        }
     }
 
     @EventSourcingHandler
@@ -126,8 +131,8 @@ class Batch {
     private fun subtractAmountFromLastPackage(amount: BigDecimal) {
         resources.last().amount = resources.last().amount.minus(amount)
     }
+
+    private fun getChargesMap() : HashMap<String, Money> {
+        return HashMap()
+    }
 }
-
-data class Share internal constructor(val customerId: String, val quantity: Int, val productId: String)
-
-data class Resource internal constructor(var amount: BigDecimal, val unitPrice: BigDecimal)
