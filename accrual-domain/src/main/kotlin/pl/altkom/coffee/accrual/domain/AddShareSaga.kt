@@ -19,6 +19,7 @@ import pl.altkom.coffee.accrual.api.dto.BatchIdByProductIdAndResourceType
 import pl.altkom.coffee.accrual.api.dto.BatchIdByResourceTypeAndStatus
 import pl.altkom.coffee.accrual.api.enums.BatchStatus
 import pl.altkom.coffee.product.api.ProductPreparationRegisteredEvent
+import pl.altkom.coffee.product.api.ProductPreparationRegisteredForClosedBatchEvent
 import pl.altkom.coffee.productcatalog.api.dto.ProductDefinitionDto
 import pl.altkom.coffee.productcatalog.api.query.ProductDetailsQuery
 import java.math.BigDecimal
@@ -30,45 +31,74 @@ class AddShareSaga : AbstractManagerSaga() {
     @Transient
     lateinit var queryGateway: QueryGateway
 
-
     var eventCounter: Int = 0
+
     @StartSaga
     @SagaEventHandler(associationProperty = "id")
     fun handle(event: ProductPreparationRegisteredEvent) {
         logger.info("Add share saga started")
 
         val productDefinitionDto = queryGateway.query(
-                ProductDetailsQuery(event.productDefId), InstanceResponseType(ProductDefinitionDto::class.java)).get()
+                ProductDetailsQuery(event.productDefId), InstanceResponseType(ProductDefinitionDto::class.java)).join()
 
-        eventCounter += productDefinitionDto.resources.size
+        validateAndSendTaxCommand(productDefinitionDto, event.id, event.productReceiverId)
 
+
+        productDefinitionDto.resources.forEach {
+            val batchId: String = queryGateway.query(BatchIdByResourceTypeAndStatus(
+                    it.type,
+                    BatchStatus.RUNNING
+            ), InstanceResponseType(String::class.java)).get()
+
+            SagaLifecycle.associateWith("productId", event.id)
+            commandGateway.send<Void>(AddShareCommand(
+                    BatchId(batchId),
+                    event.id,
+                    event.id,
+                    it.quantity
+            ))
+        }
+    }
+
+
+    @StartSaga
+    @SagaEventHandler(associationProperty = "id")
+    fun handle(event: ProductPreparationRegisteredForClosedBatchEvent) {
+        logger.info("Add share saga started")
+
+        val productDefinitionDto = queryGateway.query(
+                ProductDetailsQuery(event.productDefId), InstanceResponseType(ProductDefinitionDto::class.java)).join()
+
+        validateAndSendTaxCommand(productDefinitionDto, event.id, event.productReceiverId)
+        productDefinitionDto.resources.forEach {
+            val batchId: String = queryGateway.query(BatchIdByProductIdAndResourceType(
+                    event.selectedProductId,
+                    it.type
+            ), InstanceResponseType(String::class.java)).join()
+
+
+            SagaLifecycle.associateWith("productId", event.id)
+            commandGateway.send<Void>(AddShareCommand(
+                    BatchId(batchId),
+                    event.productReceiverId,
+                    event.id,
+                    it.quantity
+            ))
+        }
+    }
+
+
+    private fun validateAndSendTaxCommand(productDefinitionDto: ProductDefinitionDto, productId: String, productReceiverId: String) {
         if (BigDecimal.ZERO.compareTo(productDefinitionDto.tax) != 0) {
-            val taxId = getTaxId(event.id)
+            val taxId = getTaxId(productId)
             eventCounter++
             SagaLifecycle.associateWith("taxId", taxId)
             commandGateway.send<Void>(AddTaxCommand(
                     taxId,
-                    event.productReceiverId,
-                    event.id,
+                    productReceiverId,
+                    productId,
                     productDefinitionDto.id,
                     productDefinitionDto.tax
-            ))
-        }
-
-        productDefinitionDto.resources.forEach {
-            val batchId = if(event.selectedProductId == null)
-            //znajdz otwarte batche dla kazdego resourca
-                queryGateway.query(BatchIdByResourceTypeAndStatus(it.type, BatchStatus.RUNNING), InstanceResponseType(BatchId::class.java)).join()
-            else
-            //znajdz zamkniete batche po id produktu
-                queryGateway.query(BatchIdByProductIdAndResourceType(event.selectedProductId!!, it.type), InstanceResponseType(BatchId::class.java)).join()
-
-            SagaLifecycle.associateWith("batchId", batchId.identifier)
-            commandGateway.send<Void>(AddShareCommand(
-                    batchId,
-                    event.productReceiverId,
-                    event.id,
-                    it.quantity
             ))
         }
     }
@@ -84,37 +114,37 @@ class AddShareSaga : AbstractManagerSaga() {
         ))
     }
 
-    @SagaEventHandler(associationProperty = "batchId", keyName = "batchId")
+    @SagaEventHandler(associationProperty = "productId", keyName = "productId")
     fun handle(event: ShareAddedEvent) {
         logger.info("AddShareSaga: Handle ShareAddedEvent")
 
         if (event.batchFinalized) {
-
-
-
-
-
-
             commandGateway.send<Void>(SaveLiabilityCommand(
                     event.memberId,
                     OperationId(event.batchId.identifier, "BATCH"),
                     Money(BigDecimal.ZERO)
             ))
+        } else {
+            finishSagaIfAllEventsExecuted()
         }
     }
 
     @SagaEventHandler(associationProperty = "operationId", keyName = "batchId")
     fun handle(event: LiabilityAddedEvent) {
-        eventCounter--
-        if (eventCounter == 0)
-            SagaLifecycle.end()
+        finishSagaIfAllEventsExecuted()
     }
 
     @SagaEventHandler(associationProperty = "operationId", keyName = "batchId")
     fun handle(event: AssetAddedEvent) {
+        finishSagaIfAllEventsExecuted()
+    }
+
+    private fun finishSagaIfAllEventsExecuted() {
         eventCounter--
-        if (eventCounter == 0)
+        if (eventCounter == 0) {
+            AbstractManagerSaga.logger.info("Finish AddShareSaga")
             SagaLifecycle.end()
+        }
     }
 
 }

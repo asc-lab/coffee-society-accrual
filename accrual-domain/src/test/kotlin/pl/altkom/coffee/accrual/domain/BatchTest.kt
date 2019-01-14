@@ -4,10 +4,12 @@ import org.axonframework.test.aggregate.AggregateTestFixture
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
+import pl.altkom.coffee.accounting.api.Money
 import pl.altkom.coffee.accrual.api.*
 import pl.altkom.coffee.accrual.api.enums.BatchStatus
 import pl.altkom.coffee.productcatalog.api.enums.ProductResourceType
 import java.math.BigDecimal
+import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertNotSame
 import kotlin.test.assertSame
@@ -109,10 +111,45 @@ class BatchTest : Spek({
                     .given(
                             NewBatchCreatedEvent(batchId, batchId, ProductResourceType.COFFEE, BigDecimal("1.00"), BigDecimal("100.00")),
                             ResourceAddedToBatchEvent(batchId, BigDecimal("1.50"), BigDecimal("150.00")),
-                            BatchFinalizedEvent(batchId, batchId)
+                            BatchFinalizedEvent(batchId, batchId, HashMap())
                     )
                     .`when`(SaveStocktakingCommand(batchId, BigDecimal("1.00")))
                     .expectException(BatchAlreadyFinalizedException::class.java)
         }
     }
+
+    describe("calculate charges ") {
+        val batchId = BatchId("123")
+        val nextBatchID = BatchId("1235")
+        val member1 = "memeber1"
+        val member2 = "memeber2"
+        val productId = "product"
+
+        val result = Arrays.asList(member1 to Money(BigDecimal.valueOf(75.00)), member2 to Money(BigDecimal.valueOf(25.00))).toMap()
+        it("should set charges") {
+            fixture
+                    .given(
+                            NewBatchCreatedEvent(batchId, batchId, ProductResourceType.COFFEE, BigDecimal("1.00"), BigDecimal("100.00")),
+                            ShareAddedEvent(batchId, member1, productId, 1, false),
+                            ShareAddedEvent(batchId, member1, productId, 1, false),
+                            ShareAddedEvent(batchId, member1, productId, 1, false),
+                            ShareAddedEvent(batchId, member1, productId, 1, false),
+                            ShareAddedEvent(batchId, member1, productId, 1, false),
+                            ShareAddedEvent(batchId, member1, productId, 1, false),
+                            ShareAddedEvent(batchId, member2, productId, 1, false),
+                            ShareAddedEvent(batchId, member2, productId, 1, false)
+                    )
+                    .`when`(FinalizeBatchCommand(batchId, nextBatchID))
+                    .expectSuccessfulHandlerExecution()
+                    .expectEvents(BatchFinalizedEvent(batchId, nextBatchID, result))
+                    .expectState {
+                        val charges = it.calculateCharges()
+                        assertEquals(charges[member1]!!.value.compareTo(BigDecimal.valueOf(75.00)), 0)
+                        assertEquals(charges[member2]!!.value.compareTo(BigDecimal.valueOf(25.00)), 0)
+                        assertEquals(charges.size, 2)
+
+                    }
+        }
+    }
+
 })

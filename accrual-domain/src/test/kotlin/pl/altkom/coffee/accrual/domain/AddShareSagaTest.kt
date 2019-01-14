@@ -39,7 +39,7 @@ class AddShareSagaTest : Spek({
         it("should start add share saga") {
             fixture
                     .givenAggregate(taxId).published()
-                    .whenAggregate(taxId).publishes(ProductPreparationRegisteredEvent(productId, null, productDefId, memberId, memberId))
+                    .whenAggregate(taxId).publishes(ProductPreparationRegisteredEvent(productId, productDefId, memberId, memberId))
                     .expectActiveSagas(1)
 
         }
@@ -59,7 +59,7 @@ class AddShareSagaTest : Spek({
 
             fixture
                     .givenAggregate(taxId).published()
-                    .whenAggregate(taxId).publishes(ProductPreparationRegisteredEvent(productId, null, productDefId, memberId, memberId))
+                    .whenAggregate(taxId).publishes(ProductPreparationRegisteredEvent(productId, productDefId , memberId, memberId))
                     .expectActiveSagas(1)
         }
     }

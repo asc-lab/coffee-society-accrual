@@ -10,6 +10,7 @@ import pl.altkom.coffee.accrual.api.*
 import pl.altkom.coffee.accrual.api.enums.BatchStatus
 import pl.altkom.coffee.productcatalog.api.enums.ProductResourceType
 import java.math.BigDecimal
+import java.math.RoundingMode
 
 @Aggregate
 class Batch {
@@ -75,7 +76,7 @@ class Batch {
             throw BatchAlreadyFinalizedException()
 
         with(command) {
-            apply(BatchFinalizedEvent(batchId, command.nextBatchId))
+            apply(BatchFinalizedEvent(batchId, command.nextBatchId, calculateCharges()))
         }
     }
 
@@ -132,7 +133,22 @@ class Batch {
         resources.last().amount = resources.last().amount.minus(amount)
     }
 
-    private fun getChargesMap() : HashMap<String, Money> {
-        return HashMap()
+    public fun calculateCharges(): Map<String, Money> {
+        val sumAllQuantity = shares.map { it.quantity }.sum()
+        val resourcesPrice = resources.map { it.unitPrice }.fold(BigDecimal.ZERO, BigDecimal::add)
+
+        return shares.groupBy { it.customerId }
+                .map {
+                    val memberShares = it.value
+                    val memberQuantity = memberShares.map { share ->
+                        share.quantity
+                    }.sum()
+                    val percentShare = memberQuantity.toFloat() / sumAllQuantity.toFloat()
+
+                    val memberCharge = Money(resourcesPrice.multiply(percentShare.toBigDecimal()).setScale(2, RoundingMode.DOWN))
+                    it.key to memberCharge
+
+                }.toMap()
+
     }
 }
