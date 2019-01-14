@@ -13,12 +13,12 @@ class BatchEntryProjection(private val repository: BatchEntryRepository) {
 
     @EventHandler
     fun on(event: NewBatchCreatedEvent) {
-        repository.save(BatchEntry(event.batchId, event.resourceType, BatchStatus.RUNNING))
+        repository.save(BatchEntry(event.batchId.identifier, event.resourceType, BatchStatus.RUNNING))
     }
 
     @EventHandler
     fun on(event: BatchFinalizedEvent) {
-        var batchEntry = repository.findByBatchId(event.batchId)
+        val batchEntry = repository.findByBatchId(event.batchId.identifier)
         batchEntry!!.status = BatchStatus.FINALIZED
 
         repository.save(batchEntry)
@@ -26,7 +26,7 @@ class BatchEntryProjection(private val repository: BatchEntryRepository) {
 
     @EventHandler
     fun on(event: ShareAddedEvent) {
-        var batchEntry = repository.findByBatchId(event.batchId)
+        val batchEntry = repository.findByBatchId(event.batchId.identifier)
         batchEntry!!.shares.add(Share(event.memberId, event.quantity, event.productId))
 
         repository.save(batchEntry)

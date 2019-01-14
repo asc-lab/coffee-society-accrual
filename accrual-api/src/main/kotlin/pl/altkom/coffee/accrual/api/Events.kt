@@ -1,5 +1,6 @@
 package pl.altkom.coffee.accrual.api
 
+import pl.altkom.coffee.accounting.api.Money
 import pl.altkom.coffee.productcatalog.api.enums.ProductResourceType
 import java.math.BigDecimal
 
@@ -31,7 +32,8 @@ data class StocktakingSavedEvent(
 
 data class BatchFinalizedEvent(
         val batchId: BatchId,
-        val nextBatchId: BatchId
+        val nextBatchId: BatchId,
+        val charges: Map<String, Money>
 )
 
 data class TaxAddedEvent(

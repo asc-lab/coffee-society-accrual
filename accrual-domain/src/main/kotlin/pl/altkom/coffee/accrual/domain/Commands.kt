@@ -6,6 +6,7 @@ import pl.altkom.coffee.productcatalog.api.enums.ProductResourceType
 import java.math.BigDecimal
 
 data class CreateNewBatchCommand(
+        @TargetAggregateIdentifier
         val batchId: BatchId,
         val previousBatchId: BatchId?,
         val resourceType: ProductResourceType,
