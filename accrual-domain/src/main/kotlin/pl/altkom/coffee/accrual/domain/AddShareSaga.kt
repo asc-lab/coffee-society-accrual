@@ -43,7 +43,7 @@ class AddShareSaga : AbstractManagerSaga() {
         eventCounter += productDefinitionDto.resources.size
 
         if (BigDecimal.ZERO.compareTo(productDefinitionDto.tax) != 0) {
-            var taxId = getTaxId(event.id)
+            val taxId = getTaxId(event.id)
             eventCounter++
             SagaLifecycle.associateWith("taxId", taxId)
             commandGateway.send<Void>(AddTaxCommand(
@@ -56,13 +56,12 @@ class AddShareSaga : AbstractManagerSaga() {
         }
 
         productDefinitionDto.resources.forEach {
-            var batchId: BatchId
-            if(event.selectedProductId == null)
-                //znajdz otwarte batche dla kazdego resourca
-                batchId = queryGateway.query(BatchIdByResourceTypeAndStatus(it.type, BatchStatus.RUNNING), InstanceResponseType(BatchId::class.java)).join()
+            val batchId = if(event.selectedProductId == null)
+            //znajdz otwarte batche dla kazdego resourca
+                queryGateway.query(BatchIdByResourceTypeAndStatus(it.type, BatchStatus.RUNNING), InstanceResponseType(BatchId::class.java)).join()
             else
-                //znajdz zamkniete batche po id produktu
-                batchId = queryGateway.query(BatchIdByProductIdAndResourceType(event.selectedProductId, it.type), InstanceResponseType(BatchId::class.java)).join()
+            //znajdz zamkniete batche po id produktu
+                queryGateway.query(BatchIdByProductIdAndResourceType(event.selectedProductId!!, it.type), InstanceResponseType(BatchId::class.java)).join()
 
             SagaLifecycle.associateWith("batchId", batchId.identifier)
             commandGateway.send<Void>(AddShareCommand(
