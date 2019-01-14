@@ -10,8 +10,8 @@ spring:
       password: ${MONGO_PASS:admin}
       database: ${MONGO_DB:admin}
     elasticsearch:
-      cluster-name: docker-cluster
-      cluster-nodes: localhost:9300
+      cluster-name: ${ELASTICSEARCH_CLUSTER:docker-cluster}
+      cluster-nodes: ${ELASTICSEARCH_HOST:localhost}:${ELASTICSEARCH_PORT:9300}
 
 logging:
   level:
