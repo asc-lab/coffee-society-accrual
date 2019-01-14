@@ -32,3 +32,8 @@ security:
 #      queryModel:
 #        mode: tracking
 #        source: eventBus
+
+management:
+  endpoint:
+    health:
+      show-details: always
