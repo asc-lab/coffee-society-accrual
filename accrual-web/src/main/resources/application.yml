@@ -4,11 +4,11 @@ server:
 spring:
   data:
     mongodb:
-      host: localhost
-      port: 27017
-      username: admin
-      password: admin
-      database: admin
+      host: ${MONGO_HOST:localhost}
+      port: ${MONGO_PORT:27017}
+      username: ${MONGO_USER:admin}
+      password: ${MONGO_PASS:admin}
+      database: ${MONGO_DB:admin}
     elasticsearch:
       cluster-name: docker-cluster
       cluster-nodes: localhost:9300
