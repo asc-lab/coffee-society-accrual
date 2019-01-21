@@ -26,6 +26,10 @@ security:
       jwt:
         key-value: secretKey
 
+axon:
+  axonserver:
+    servers: ${AXON_HOST:localhost}
+
 #axon:
 #  eventhandling:
 #    processors:
